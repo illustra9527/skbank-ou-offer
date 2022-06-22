@@ -251,20 +251,14 @@ export default {
       return 0;
     },
     ouOffer() {
-      if (this.ouChannels.includes(this.datas.channel) || this.datas.payment) {
+      if (this.ouChannels.includes(this.datas.channel)
+        || (this.datas.payment && this.datas.payment !== '網購刷卡')) {
         const { percent, limit } = this.isOuDay ? this.offer.ouday : this.offer.ouOffer;
         const amount = +this.datas.amount * percent;
         return Math.round(amount >= limit ? limit : amount);
       }
       return 0;
     },
-    /* 
-      todo
-      1. 將 ou 自動扣繳從 ou 帳戶中分離v
-      2. 新增週六（要不影響判斷）v
-      3. 新增一般刷卡消費（要新增判斷 isOuDay 的部分）
-    
-    */
     ouAccount() {
       if (this.ouChannels.includes(this.datas.channel)) {
         const { percent, limit } = this.offer.ouAccount;
@@ -274,7 +268,7 @@ export default {
       return 0
     },
     isOuDay() {
-      if (!this.datas.payment || !this.datas.payDay || !this.datas.payDay === 'saturday') {
+      if (!this.datas.payment || !this.datas.payDay || this.datas.payDay === 'saturday') {
         return false
       }
       return this.datas.payment && this.datas.payDay ? this.ouDay[this.datas.payDay].includes(this.datas.payment) : false;
