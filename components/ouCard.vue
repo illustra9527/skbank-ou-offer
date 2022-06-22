@@ -38,7 +38,7 @@
                 </el-select>
             </div>
             <div class="input-wrap">
-                <el-select v-model="datas.payDay" placeholder="请选择消費日期">
+                <el-select v-model="datas.payDay" placeholder="請選擇消費日期">
                     <el-option
                         v-for="item in dayOfWeek"
                         :key="`day-${item.value}`"
@@ -48,7 +48,7 @@
                 </el-select>
             </div>
             <div class="input-wrap">
-                <el-select v-model="datas.payment" placeholder="请选择支付方式">
+                <el-select v-model="datas.payment" placeholder="請選擇支付方式">
                     <el-option
                         v-for="item in paymentList"
                         :key="`payment-${item}`"
@@ -167,17 +167,19 @@ export default {
         wednesday: ['HiPay', 'My FamiPay'],
         thursday: ['LINE Pay'],
         friday: ['PXPAY'],
+        saturday: [],
         sunday: ['OPEN錢包']
       },
       /* 所有通路選擇 */
       allChannels: ['富邦momo', '蝦皮', 'PChome24h購物', 'PChome商店街', 'Yahoo奇摩', '淘寶', '東森/森森購物', 'viva', '博客來', '生活市集', 'friDay購物', '夠麻吉GOMAJI', 'ASOS', 'Shopbop', 'IHERB', 'Amazon', '17Life', 'TENSO', 'App Store', 'Google Play', 'foodpanda', 'Uber Eats', '其他'],
-      paymentList: ['My FamiPay', 'HiPay', 'LINE Pay', 'PXPAY', 'OPEN錢包'],
+      paymentList: ['網購刷卡', 'My FamiPay', 'HiPay', 'LINE Pay', 'PXPAY', 'OPEN錢包'],
       dayOfWeek: [
         { value: 'monday', text: '週一' },
         { value: 'tuesday', text: '週二' },
         { value: 'wednesday', text: '週三' },
         { value: 'thursday', text: '週四' },
         { value: 'friday', text: '週五' },
+        { value: 'saturday', text: '週六' },
         { value: 'sunday', text: '週日' }
       ],
       clientOptions: [
@@ -194,25 +196,35 @@ export default {
       },
       /* 優惠整理 */
       offer: {
+        /* 信用卡新戶 */
         newClient: {
           percent: 0.05,
           limit: 250
         },
+        /* 保底 */
         noLimit: {
           percent: 0.003,
           limit: null
         },
+        /* 指定通路加碼 */
         specialChannel: {
           percent: 0.047,
           limit: 250
         },
+        /* OU數位帳戶加碼回饋 */
         ouOffer: {
-          percent: 0.12,
-          limit: 350
+          percent: 0.11,
+          limit: 250
         },
+        /* OU數位帳戶加碼回饋(ouDay) */
         ouday: {
-          percent: 0.17,
-          limit: 350
+          percent: 0.16,
+          limit: 250
+        },
+        /* OU數位帳戶加碼回饋(綁定自動扣繳) */
+        ouAccount: {
+          percent: 0.01,
+          limit: 100
         }
       },
       windowWidth: window.innerWidth
@@ -239,19 +251,32 @@ export default {
       return 0;
     },
     ouOffer() {
-      if (this.ouChannels.includes(this.datas.channel)) {
+      if (this.ouChannels.includes(this.datas.channel) || this.datas.payment) {
         const { percent, limit } = this.isOuDay ? this.offer.ouday : this.offer.ouOffer;
-        const amount = +this.datas.amount * percent;
-        return Math.round(amount >= limit ? limit : amount);
-      }
-      if (this.datas.payment) {
-        const { percent, limit } = this.offer.ouOffer;
         const amount = +this.datas.amount * percent;
         return Math.round(amount >= limit ? limit : amount);
       }
       return 0;
     },
+    /* 
+      todo
+      1. 將 ou 自動扣繳從 ou 帳戶中分離v
+      2. 新增週六（要不影響判斷）v
+      3. 新增一般刷卡消費（要新增判斷 isOuDay 的部分）
+    
+    */
+    ouAccount() {
+      if (this.ouChannels.includes(this.datas.channel)) {
+        const { percent, limit } = this.offer.ouAccount;
+        const amount = +this.datas.amount * percent;
+        return Math.round(amount >= limit ? limit : amount);
+      }
+      return 0
+    },
     isOuDay() {
+      if (!this.datas.payment || !this.datas.payDay || !this.datas.payDay === 'saturday') {
+        return false
+      }
       return this.datas.payment && this.datas.payDay ? this.ouDay[this.datas.payDay].includes(this.datas.payment) : false;
     },
     newClientChannelsList() {
@@ -264,7 +289,7 @@ export default {
       return this.ouChannels.join('、');
     },
     totalOffer() {
-      return this.newClient + this.noLimit + this.specialChannel + this.ouOffer
+      return this.newClient + this.noLimit + this.specialChannel + this.ouOffer + this.ouAccount
     },
     popSize() {
       if (this.windowWidth < 900) {
@@ -299,6 +324,13 @@ export default {
         project: `OU加碼 ${this.isOuDay ? '17%' : '12%'}`,
         offer: this.ouOffer,
         left: this.leftOver('ouOffer'),
+        shops: this.ouOfferList
+      },
+      {
+        id: 'ouAccount',
+        project: 'OU自動扣繳 1%',
+        offer: this.ouAccount,
+        left: this.leftOver('ouAccount'),
         shops: this.ouOfferList
       },
       {
