@@ -260,7 +260,8 @@ export default {
       return 0;
     },
     ouAccount() {
-      if (this.ouChannels.includes(this.datas.channel)) {
+      if (this.ouChannels.includes(this.datas.channel)
+      || (this.datas.payment && this.datas.payment !== '網購刷卡')) {
         const { percent, limit } = this.offer.ouAccount;
         const amount = +this.datas.amount * percent;
         return Math.round(amount >= limit ? limit : amount);
