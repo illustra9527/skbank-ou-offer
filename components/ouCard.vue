@@ -316,7 +316,7 @@ export default {
         shops: ''
       }, {
         id: 'ouOffer',
-        project: `OU加碼 ${this.isOuDay ? '17%' : '12%'}`,
+        project: `OU加碼 ${this.isOuDay ? '16%' : '11%'}`,
         offer: this.ouOffer,
         left: this.leftOver('ouOffer'),
         shops: this.ouOfferList
